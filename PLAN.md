@@ -4,7 +4,7 @@
 package that turns a raster image (photo, scan) into a vector outline (SVG
 and/or DXF) of the object(s) in it.
 
-This document defines *how* the project gets built: the architecture that
+This document defines _how_ the project gets built: the architecture that
 makes it reusable across other projects, the stages of work, and how that
 work divides across multiple agents/sessions. See `ROADMAP.md` for the
 milestone/version sequencing.
@@ -12,7 +12,7 @@ milestone/version sequencing.
 ## 1. Design principles
 
 These principles exist specifically because the goal is to reuse this
-package in *other* projects, not just ship it once:
+package in _other_ projects, not just ship it once:
 
 1. **Stable internal representation (IR).** All pipeline stages after image
    analysis operate on one internal vector format (paths/polylines/beziers
@@ -68,6 +68,7 @@ tested, and owned independently once the IR shape is frozen in Stage 0.
 ## 3. Stages
 
 ### Stage 0 — Foundation & API contract
+
 **Goal:** Freeze the public API and the internal IR before any pipeline
 logic is written, so downstream stages have a stable target.
 
@@ -85,6 +86,7 @@ logic is written, so downstream stages have a stable target.
 logic yet. This stage is a hard dependency for every other stage.
 
 ### Stage 1 — Core vision pipeline
+
 **Goal:** Raw image in, internal IR out (in pixel units).
 
 - Node image-decode adapter (e.g. `sharp`).
@@ -101,6 +103,7 @@ shape within tolerance; unit tests per sub-step (preprocess/trace/simplify
 independently testable).
 
 ### Stage 2 — Calibration & units
+
 **Goal:** Convert pixel-space IR into real-world units, since DXF/CAD
 consumers need actual dimensions, not pixel coordinates.
 
@@ -116,6 +119,7 @@ Stage 0 is frozen, in parallel with late Stage 1 work.
 calibration input is given (defaults to px passthrough).
 
 ### Stage 3 — Output writers (parallelizable)
+
 **Goal:** IR → SVG string, IR → DXF string. Two independent modules against
 the same frozen IR — this is the clearest parallelization point in the
 project.
@@ -132,6 +136,7 @@ vision pipeline is finished).
 visually/structurally checked) → matches expected geometry.
 
 ### Stage 4 — Integration, examples & validation
+
 **Goal:** Prove the assembled pipeline works on real images, not just
 fixtures.
 
@@ -147,6 +152,7 @@ fixtures.
 **Depends on:** Stages 1–3 complete.
 
 ### Stage 5 — Documentation & release
+
 **Goal:** Make the package actually consumable by other projects (the
 stated end goal).
 
@@ -163,15 +169,15 @@ The stage boundaries above are also agent-ownership boundaries. The IR and
 public API from Stage 0 are the contract every other agent codes against,
 so Stage 0 must land and be reviewed before parallel work starts.
 
-| Role | Owns | Can start after |
-|---|---|---|
-| **Architect** | Stage 0 (API + IR types, adapter interface, project scaffold, CI). Also reviews other agents' PRs for contract conformance throughout. | — (first) |
-| **Vision-core agent** | Stage 1 (preprocess, trace, simplify) | Stage 0 merged |
-| **Calibration agent** | Stage 2 (units/scaling) | Stage 0 merged (works against IR fixtures; doesn't need Stage 1 finished) |
-| **SVG-writer agent** | Stage 3 SVG writer | Stage 0 merged (works against IR fixtures) |
-| **DXF-writer agent** | Stage 3 DXF writer | Stage 0 merged (works against IR fixtures) |
-| **QA/integration agent** | Stage 4: fixture corpus, accuracy harness, wiring, examples | Stages 1–3 substantially complete |
-| **Docs/release agent** | Stage 5 | Stage 4 complete |
+| Role                     | Owns                                                                                                                                   | Can start after                                                           |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Architect**            | Stage 0 (API + IR types, adapter interface, project scaffold, CI). Also reviews other agents' PRs for contract conformance throughout. | — (first)                                                                 |
+| **Vision-core agent**    | Stage 1 (preprocess, trace, simplify)                                                                                                  | Stage 0 merged                                                            |
+| **Calibration agent**    | Stage 2 (units/scaling)                                                                                                                | Stage 0 merged (works against IR fixtures; doesn't need Stage 1 finished) |
+| **SVG-writer agent**     | Stage 3 SVG writer                                                                                                                     | Stage 0 merged (works against IR fixtures)                                |
+| **DXF-writer agent**     | Stage 3 DXF writer                                                                                                                     | Stage 0 merged (works against IR fixtures)                                |
+| **QA/integration agent** | Stage 4: fixture corpus, accuracy harness, wiring, examples                                                                            | Stages 1–3 substantially complete                                         |
+| **Docs/release agent**   | Stage 5                                                                                                                                | Stage 4 complete                                                          |
 
 Key point: four of the seven roles (vision-core, calibration, SVG-writer,
 DXF-writer) can run **concurrently** immediately after Stage 0, because
@@ -180,6 +186,7 @@ implementations. This is the practical payoff of designing the IR first —
 it turns a linear pipeline into a fan-out.
 
 **Coordination rules:**
+
 - No agent other than the Architect changes the public API or IR shape
   without an explicit, reviewed change — every other agent treats those
   types as read-only contracts.

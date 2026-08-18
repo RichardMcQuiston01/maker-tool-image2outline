@@ -8,23 +8,23 @@ each milestone.
 
 Status legend: ⬜ not started · 🟨 in progress · ✅ done
 
-## M0 — Foundation (`v0.1.0-alpha`) ⬜
+## M0 — Foundation (`v0.1.0-alpha`) ✅
 
 Scaffold and contracts. Nothing downstream starts until this ships.
 
-- [ ] TS project scaffold (tsconfig, `tsup` dual ESM/CJS build, lint/format)
-- [ ] Public API types (`Image2OutlineOptions`, `OutlineResult`, input union,
+- [x] TS project scaffold (tsconfig, `tsup` dual ESM/CJS build, lint/format)
+- [x] Public API types (`Image2OutlineOptions`, `OutlineResult`, input union,
       `OutputFormat`)
-- [ ] Internal IR types (paths, units, hole/winding metadata)
-- [ ] Image-decode adapter interface (Node impl deferred to M1)
-- [ ] Test runner + fixtures convention (`vitest`)
-- [ ] CI: lint, typecheck, test, build on every PR
+- [x] Internal IR types (paths, units, hole/winding metadata)
+- [x] Image-decode adapter interface (Node impl deferred to M1)
+- [x] Test runner + fixtures convention (`vitest`)
+- [x] CI: lint, typecheck, test, build on every PR
 
 **Ships:** types-only package, green CI, no image processing yet.
 
 ## M1 — Core vision pipeline (`v0.2.0-alpha`) ⬜
 
-*Depends on: M0.*
+_Depends on: M0._
 
 - [ ] Node image-decode adapter
 - [ ] Preprocessing (grayscale, denoise, threshold/binarize)
@@ -38,7 +38,7 @@ path yet.
 
 ## M2 — Calibration & units (`v0.3.0-alpha`) ⬜
 
-*Depends on: M0. Can run in parallel with the back half of M1.*
+_Depends on: M0. Can run in parallel with the back half of M1._
 
 - [ ] Manual scale input (DPI / "N px = X mm")
 - [ ] Coordinate normalization (origin, CAD Y-axis convention)
@@ -49,8 +49,8 @@ path yet.
 
 ## M3 — Output writers (`v0.4.0-alpha`) ⬜
 
-*Depends on: M0 only — can start immediately after M0, in parallel with
-M1/M2, since writers work against IR fixtures, not the live pipeline.*
+_Depends on: M0 only — can start immediately after M0, in parallel with
+M1/M2, since writers work against IR fixtures, not the live pipeline._
 
 - [ ] SVG writer (path data, `viewBox`, style options)
 - [ ] DXF writer (`LWPOLYLINE`/`SPLINE`, layers, units header)
@@ -61,7 +61,7 @@ M1/M2, since writers work against IR fixtures, not the live pipeline.*
 
 ## M4 — Integration & validation (`v0.5.0-beta`) ⬜
 
-*Depends on: M1, M2, M3 complete.*
+_Depends on: M1, M2, M3 complete._
 
 - [ ] Wire pipeline end-to-end behind the public API
 - [ ] Real-image regression corpus (camera photos + scans, varied
@@ -76,7 +76,7 @@ images.
 
 ## M5 — Docs & release (`v1.0.0`) ⬜
 
-*Depends on: M4.*
+_Depends on: M4._
 
 - [ ] README Prerequisites/Installation/Usage/Examples filled in
 - [ ] Generated API docs (typedoc)
