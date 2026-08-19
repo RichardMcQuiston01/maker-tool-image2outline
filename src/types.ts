@@ -20,8 +20,13 @@ export interface ImageLikeData {
   readonly data: Uint8ClampedArray;
 }
 
-/** Accepted image sources: a decoded/encoded buffer, a file path, in-memory pixel data, or a URL. */
-export type ImageInput = Buffer | string | ImageLikeData | URL;
+/**
+ * Accepted image sources: a decoded/encoded byte buffer, a file path,
+ * in-memory pixel data, or a URL. `Uint8Array` (not Node's `Buffer`) so
+ * this type resolves without Node's ambient types in a browser consumer
+ * — a Node `Buffer` is itself a `Uint8Array` and remains assignable here.
+ */
+export type ImageInput = Uint8Array | string | ImageLikeData | URL;
 
 export type OutputFormat = "svg" | "dxf";
 
@@ -45,7 +50,7 @@ export interface ScaleCalibration {
 
 export interface Image2OutlineOptions {
   /** Which output format(s) to produce; at least one is required. */
-  readonly formats: readonly OutputFormat[];
+  readonly formats: readonly [OutputFormat, ...OutputFormat[]];
   /**
    * Manual scale calibration. When omitted, output coordinates stay in
    * pixel space (`unit: "px"` on the result) — see PLAN.md Stage 2.

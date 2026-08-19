@@ -47,16 +47,28 @@ export interface VectorPath {
 export type Winding = "clockwise" | "counterclockwise";
 
 /**
- * One traced boundary. `isHole` distinguishes an outer boundary from an
- * inner one (e.g. the inner ring of a traced letter "O") — both are
- * represented as contours so nested-hole detection in Stage 1 (see
- * PLAN.md's Stage 1) has a uniform shape to emit.
+ * One traced boundary: a path plus its winding direction. `isHole`
+ * distinguishes an outer boundary from an inner one (e.g. the inner ring
+ * of a traced letter "O"). It's a discriminant, not an independent flag —
+ * `OuterContour`/`HoleContour` below is the type-level guarantee that a
+ * `VectorShape`'s `outer` can't carry `isHole: true` (or a `holes` entry
+ * `isHole: false`), so the two ways of expressing "is this a hole" can
+ * never disagree.
  */
-export interface Contour {
+interface ContourBase {
   readonly path: VectorPath;
   readonly winding: Winding;
-  readonly isHole: boolean;
 }
+
+export interface OuterContour extends ContourBase {
+  readonly isHole: false;
+}
+
+export interface HoleContour extends ContourBase {
+  readonly isHole: true;
+}
+
+export type Contour = OuterContour | HoleContour;
 
 /**
  * One detected object in the source image: its outer boundary plus any
@@ -65,8 +77,8 @@ export interface Contour {
  */
 export interface VectorShape {
   readonly id: string;
-  readonly outer: Contour;
-  readonly holes: readonly Contour[];
+  readonly outer: OuterContour;
+  readonly holes: readonly HoleContour[];
 }
 
 /**
