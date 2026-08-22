@@ -36,3 +36,21 @@
 - Unit tests per sub-step plus a decode-and-trace integration test, using
   synthetic images built in test code rather than checked-in binary
   fixtures.
+
+### Added (M3 — Output writers)
+
+- SVG writer (`src/writers/svg.ts`): one `<path>` per shape, outer +
+  holes as subpaths under `fill-rule="evenodd"` (so holes render
+  correctly regardless of contour winding), `line`/`cubic` segment
+  support, unit-aware `viewBox`/`width`/`height`.
+- DXF writer (`src/writers/dxf.ts`): minimal hand-rolled ASCII DXF R2000
+  (`AC1015`) — `HEADER` (`$ACADVER`, `$INSUNITS`), `TABLES` (`LAYER`),
+  one `LWPOLYLINE` per contour (outer and holes alike — DXF has no
+  native hole concept, and for laser/CNC use a hole is just another cut
+  path). `cubic` segments are flattened to straight vertices
+  (`bezierSegments` option); `SPLINE` entities are deferred. Hand-rolled
+  rather than a third-party dependency — see the file's header comment
+  for the reasoning.
+- Golden-file and round-trip tests for both writers against hand-built
+  IR fixtures (`test/fixtures/ir/`), independent of the vision pipeline.
+  Not wired behind the public API yet — that's Stage 4.

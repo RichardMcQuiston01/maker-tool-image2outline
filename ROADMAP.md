@@ -51,15 +51,21 @@ _Depends on: M0. Can run in parallel with the back half of M1._
 
 **Ships:** IR carries real-world units.
 
-## M3 — Output writers (`v0.4.0-alpha`) ⬜
+## M3 — Output writers (`v0.4.0-alpha`) ✅
 
 _Depends on: M0 only — can start immediately after M0, in parallel with
 M1/M2, since writers work against IR fixtures, not the live pipeline._
 
-- [ ] SVG writer (path data, `viewBox`, style options)
-- [ ] DXF writer (`LWPOLYLINE`/`SPLINE`, layers, units header)
-- [ ] Golden-file tests for both writers
-- [ ] Decision recorded: hand-rolled vs. third-party DXF writer
+- [x] SVG writer (path data, `viewBox`, style options)
+- [x] DXF writer (`LWPOLYLINE`, layers, units header); `SPLINE` entities
+      for `cubic` segments deferred — hand-off is a fixed-sample flatten to
+      straight `LWPOLYLINE` vertices instead, since Stage 1 doesn't
+      produce `cubic` segments yet either
+- [x] Golden-file tests for both writers, plus round-trip tests (generated
+      output parsed back to points and compared to the source IR)
+- [x] Decision recorded: hand-rolled (see `src/writers/dxf.ts` header
+      comment) — a third-party DXF library pulls in far more than a
+      closed-2D-polyline writer needs
 
 **Ships:** `IR -> SVG` and `IR -> DXF`, independently tested.
 
