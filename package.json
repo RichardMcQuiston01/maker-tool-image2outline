@@ -50,5 +50,8 @@
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.0",
     "vitest": "^4.1.11"
+  },
+  "dependencies": {
+    "sharp": "^0.35.3"
   }
 }
