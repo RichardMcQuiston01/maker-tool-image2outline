@@ -21,6 +21,24 @@ describe("traceBoundary", () => {
     expect(traceBoundary(inside, { x: 0, y: 0 })).toEqual([{ x: 0, y: 0 }]);
   });
 
+  it("throws rather than silently returning a partial boundary if the trace can't close", () => {
+    // An `inside` predicate whose answer for (1,0) flips after the first
+    // query — simulating a caller bug where membership isn't stable across
+    // calls. The tracer must fail loudly instead of returning a truncated
+    // boundary that downstream code would treat as a valid closed contour.
+    let queriedOnce = false;
+    const inside = (x: number, y: number): boolean => {
+      if (x === 0 && y === 0) return true;
+      if (x === 1 && y === 0) {
+        const answer = !queriedOnce;
+        queriedOnce = true;
+        return answer;
+      }
+      return false;
+    };
+    expect(() => traceBoundary(inside, { x: 0, y: 0 })).toThrow(/did not close/);
+  });
+
   it("traces exactly the perimeter pixels of a solid 3x3 square", () => {
     const inside = (x: number, y: number): boolean => x >= 0 && x <= 2 && y >= 0 && y <= 2;
     const boundary = traceBoundary(inside, { x: 0, y: 0 });

@@ -61,11 +61,17 @@ export function simplifyPath(points: readonly PixelPoint[], epsilon: number): Pi
  * RDP over a closed loop (e.g. a traced contour): the closing edge (last
  * point back to the first) is included in the simplification pass so a
  * straight edge spanning the array boundary still collapses correctly.
+ *
+ * Falls back to the original (unsimplified) points if simplification would
+ * collapse a small-but-valid contour (e.g. a 2x2 square) below 3 vertices —
+ * otherwise a legitimate small shape could come out as a degenerate
+ * zero-segment "path".
  */
 export function simplifyClosedPath(points: readonly PixelPoint[], epsilon: number): PixelPoint[] {
   if (points.length < 3) return [...points];
 
   const withClosingPoint = [...points, points[0]!];
   const simplified = simplifyPath(withClosingPoint, epsilon);
-  return simplified.slice(0, -1);
+  const result = simplified.slice(0, -1);
+  return result.length >= 3 ? result : [...points];
 }

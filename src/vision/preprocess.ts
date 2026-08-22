@@ -13,27 +13,45 @@ export interface PreprocessOptions {
   readonly blurRadius?: number;
 }
 
-/** Rec. 709 luma: a single grayscale intensity per pixel, in [0, 255]. */
+/**
+ * Rec. 709 luma: a single grayscale intensity per pixel, in [0, 255].
+ *
+ * Alpha is composited against a white matte before computing luminance, so
+ * a fully transparent pixel reads as white (background) regardless of its
+ * RGB — otherwise a transparent pixel with RGB (0,0,0) is indistinguishable
+ * from an opaque black one, and border-orientation would misclassify a
+ * transparent background as the foreground object.
+ */
 export function toGrayscale(image: DecodedImage): Float64Array {
   const { width, height, data } = image;
   const out = new Float64Array(width * height);
   for (let i = 0, p = 0; i < out.length; i++, p += 4) {
-    const r = data[p]!;
-    const g = data[p + 1]!;
-    const b = data[p + 2]!;
+    const alpha = data[p + 3]! / 255;
+    const r = data[p]! * alpha + 255 * (1 - alpha);
+    const g = data[p + 1]! * alpha + 255 * (1 - alpha);
+    const b = data[p + 2]! * alpha + 255 * (1 - alpha);
     out[i] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
   }
   return out;
 }
 
-/** Simple box blur (mean filter), used to denoise before thresholding. */
+/**
+ * Simple box blur (mean filter), used to denoise before thresholding.
+ *
+ * @throws {RangeError} if `radius` isn't a non-negative integer (a
+ * fractional radius would index the array with non-integer offsets and
+ * corrupt the output with `NaN`; an infinite one would hang the loop).
+ */
 export function boxBlur(
   gray: Float64Array,
   width: number,
   height: number,
   radius: number,
 ): Float64Array {
-  if (radius <= 0) return gray;
+  if (!Number.isInteger(radius) || radius < 0) {
+    throw new RangeError(`blurRadius must be a non-negative integer, got ${radius}`);
+  }
+  if (radius === 0) return gray;
 
   const out = new Float64Array(gray.length);
   for (let y = 0; y < height; y++) {

@@ -53,6 +53,7 @@ export function traceBoundary(
 
   const boundary: PixelPoint[] = [start];
   let state: TraceState = { x: start.x, y: start.y, backtrackDir: 6 }; // west
+  let completed = false;
 
   for (let step = 0; step < MAX_TRACE_STEPS; step++) {
     let foundDir = -1;
@@ -64,7 +65,7 @@ export function traceBoundary(
         break;
       }
     }
-    if (foundDir === -1) break; // shouldn't happen once we've confirmed a neighbor exists
+    if (foundDir === -1) break; // shouldn't happen once we've confirmed a neighbor exists; caught below
 
     const d = OFFSETS[foundDir]!;
     const next: TraceState = {
@@ -73,10 +74,23 @@ export function traceBoundary(
       backtrackDir: (foundDir + 4) % 8,
     };
 
-    if (next.x === start.x && next.y === start.y) break; // completed the lap
+    if (next.x === start.x && next.y === start.y) {
+      completed = true;
+      break;
+    }
 
     boundary.push({ x: next.x, y: next.y });
     state = next;
+  }
+
+  // A silently-returned partial boundary would get treated as a valid
+  // closed contour downstream — fail loudly instead so a bug in `inside`
+  // or a pathological (e.g. >MAX_TRACE_STEPS-perimeter) region surfaces
+  // immediately rather than corrupting output.
+  if (!completed) {
+    throw new RangeError(
+      `traceBoundary did not close after ${boundary.length} steps starting at (${start.x}, ${start.y})`,
+    );
   }
 
   return boundary;

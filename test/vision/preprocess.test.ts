@@ -38,6 +38,26 @@ describe("toGrayscale", () => {
   });
 });
 
+describe("toGrayscale with transparency", () => {
+  it("reads a fully transparent pixel as white regardless of its RGB", () => {
+    // Transparent black (data=0,0,0,alpha=0) vs. opaque black (alpha=255):
+    // without alpha compositing these are indistinguishable and an
+    // all-transparent image would be misread as an all-dark foreground.
+    const data = new Uint8ClampedArray(8);
+    data[0] = 0;
+    data[1] = 0;
+    data[2] = 0;
+    data[3] = 0; // transparent black
+    data[4] = 0;
+    data[5] = 0;
+    data[6] = 0;
+    data[7] = 255; // opaque black
+    const gray = toGrayscale({ width: 2, height: 1, data });
+    expect(Math.round(gray[0]!)).toBe(255);
+    expect(Math.round(gray[1]!)).toBe(0);
+  });
+});
+
 describe("boxBlur", () => {
   it("is a no-op for radius 0", () => {
     const gray = new Float64Array([1, 2, 3, 4]);
@@ -48,6 +68,13 @@ describe("boxBlur", () => {
     const gray = new Float64Array(9).fill(100);
     const blurred = boxBlur(gray, 3, 3, 1);
     expect(Array.from(blurred)).toEqual(Array.from({ length: 9 }, () => 100));
+  });
+
+  it("rejects a non-integer, negative, or non-finite radius", () => {
+    const gray = new Float64Array(4);
+    expect(() => boxBlur(gray, 2, 2, 1.5)).toThrow(RangeError);
+    expect(() => boxBlur(gray, 2, 2, -1)).toThrow(RangeError);
+    expect(() => boxBlur(gray, 2, 2, Infinity)).toThrow(RangeError);
   });
 });
 

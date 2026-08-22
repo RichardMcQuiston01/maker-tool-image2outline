@@ -74,4 +74,20 @@ describe("simplifyClosedPath", () => {
     ];
     expect(simplifyClosedPath(points, 1)).toEqual(points);
   });
+
+  it("falls back to the original points rather than collapsing a small valid shape", () => {
+    // A 2x2 square's traced boundary: with the pipeline's default epsilon
+    // (1.5), naively simplifying-then-dropping-the-closing-point would
+    // collapse this to under 3 vertices, producing a degenerate "path" for
+    // a perfectly valid small component.
+    const square = [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 1, y: 1 },
+      { x: 0, y: 1 },
+    ];
+    const simplified = simplifyClosedPath(square, 1.5);
+    expect(simplified.length).toBeGreaterThanOrEqual(3);
+    expect(simplified).toEqual(square);
+  });
 });
