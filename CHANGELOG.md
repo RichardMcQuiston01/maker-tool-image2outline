@@ -16,3 +16,23 @@
   implementation lands in Stage 1.
 - Test fixtures convention (`test/fixtures/`) and CI workflow
   (lint, format check, typecheck, test, build on every PR).
+
+### Added (M1 — Core vision pipeline)
+
+- Node image-decode adapter (`src/adapters/node.ts`, `sharp`): decodes file
+  paths, byte buffers, raw `ImageLikeData`, and `file:` URLs to RGBA pixel
+  data.
+- Vision pipeline (`src/vision/`), pixel-space image -> IR:
+  - `preprocess.ts` — grayscale, box-blur denoise, Otsu threshold,
+    foreground/background orientation.
+  - `components.ts` — connected-component labeling (multi-object support).
+  - `trace.ts` — Moore-neighbor boundary tracing plus nested-hole
+    detection, so a traced "O" keeps its inner ring.
+  - `simplify.ts` — Ramer-Douglas-Peucker contour simplification. Curve
+    smoothing (fitting `cubic` `PathSegment`s) is deferred; the IR already
+    supports it for when that lands.
+  - `pipeline.ts` — `traceImage()` composes the above into a
+    `VectorDocument`. Not wired behind the public API yet — that's Stage 4.
+- Unit tests per sub-step plus a decode-and-trace integration test, using
+  synthetic images built in test code rather than checked-in binary
+  fixtures.

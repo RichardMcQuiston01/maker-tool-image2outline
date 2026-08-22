@@ -22,16 +22,20 @@ Scaffold and contracts. Nothing downstream starts until this ships.
 
 **Ships:** types-only package, green CI, no image processing yet.
 
-## M1 — Core vision pipeline (`v0.2.0-alpha`) ⬜
+## M1 — Core vision pipeline (`v0.2.0-alpha`) ✅
 
 _Depends on: M0._
 
-- [ ] Node image-decode adapter
-- [ ] Preprocessing (grayscale, denoise, threshold/binarize)
-- [ ] Contour tracing with nested-hole support
-- [ ] Contour simplification (Ramer–Douglas–Peucker) + optional smoothing
-- [ ] Multi-object detection in a single image
-- [ ] Unit tests per sub-step against fixture images
+- [x] Node image-decode adapter
+- [x] Preprocessing (grayscale, denoise, threshold/binarize)
+- [x] Contour tracing with nested-hole support
+- [x] Contour simplification (Ramer–Douglas–Peucker); curve smoothing
+      (bezier fitting) deferred — `PathSegment` already supports `cubic`
+      segments for when that lands
+- [x] Multi-object detection in a single image
+- [x] Unit tests per sub-step, against synthetic fixture images built in
+      test code (see `test/fixtures/README.md`) rather than checked-in
+      binary files
 
 **Ships:** image → IR (pixel units), internally testable, no public export
 path yet.
