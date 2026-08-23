@@ -103,6 +103,15 @@ describe("calibrate", () => {
     });
   });
 
+  it.each([0, -10, NaN, Infinity])(
+    "rejects a non-positive or non-finite pixelsPerUnit (%s)",
+    (pixelsPerUnit) => {
+      expect(() =>
+        calibrate(pixelSquareDocument, { scale: { pixelsPerUnit, unit: "mm" } }),
+      ).toThrow(RangeError);
+    },
+  );
+
   it("does not mutate the input document", () => {
     const original = JSON.parse(JSON.stringify(pixelSquareDocument));
     calibrate(pixelSquareDocument, { scale: { pixelsPerUnit: 10, unit: "mm" }, flipY: true });

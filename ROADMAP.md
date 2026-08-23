@@ -46,8 +46,8 @@ _Depends on: M0. Can run in parallel with the back half of M1._
 
 - [x] Manual scale input (DPI / "N px = X mm")
 - [x] Coordinate normalization (origin, CAD Y-axis convention)
-- [x] Configurable output units (mm/in/px) — driven by the `scale.unit`
-      passed to `calibrate()`
+- [x] Configurable output units — `mm`/`in` via `scale.unit`; `px`
+      passthrough when no `scale` is given
 - [ ] Stretch: reference-marker auto-calibration (deferred — see Future /
       stretch)
 

@@ -111,6 +111,10 @@ export function calibrate(doc: VectorDocument, options: CalibrationOptions = {})
     return doc;
   }
 
+  if (scale && (!Number.isFinite(scale.pixelsPerUnit) || scale.pixelsPerUnit <= 0)) {
+    throw new RangeError("scale.pixelsPerUnit must be a finite number greater than zero");
+  }
+
   const scaleFactor = scale ? 1 / scale.pixelsPerUnit : 1;
   const unit: Unit = scale ? scale.unit : doc.unit;
   const width = doc.width * scaleFactor;
