@@ -15,4 +15,12 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Plain Node scripts (not type-checked by typescript-eslint, which is
+    // what disables `no-undef` for `.ts` files elsewhere in this config).
+    files: ["scripts/**/*.mjs", "examples/**/*.mjs"],
+    languageOptions: {
+      globals: { process: "readonly", console: "readonly", Buffer: "readonly" },
+    },
+  },
 );

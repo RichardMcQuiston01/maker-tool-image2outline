@@ -55,6 +55,35 @@
     genuine `unit: "px"` document for calibration tests (the existing
     fixtures are pre-calibrated).
 
+### Added (M4 — Integration & validation)
+
+- `image2outline()` (`src/index.ts`) is wired end-to-end: Node
+  image-decode adapter -> vision pipeline -> calibration -> requested
+  output writer(s). Previously always threw.
+- `Image2OutlineOptions` gained `flipY`, alongside the existing `scale`,
+  to normalize output to CAD convention (Y up, origin bottom-left) —
+  mainly relevant for `.dxf` consumers, since SVG is already Y-down.
+- Real-image regression corpus (`test/fixtures/images/regression/`,
+  `scripts/generate-regression-fixtures.mjs`): four synthesized images
+  (gradient+noise, vignette+noise, blurred ring with a hole,
+  noisy-background star) standing in for camera photos/scans, since this
+  sandboxed dev environment can't source real ones. Each has a
+  `manifest.json` entry with exact analytically-known ground truth
+  (shape/hole count, area).
+- Accuracy/regression harness (`test/integration/regression.test.ts`):
+  traces the corpus and checks shape/hole count and outer/hole area
+  against the manifest, within tolerance.
+- Minimal Node usage example (`examples/basic-usage.mjs`,
+  `examples/README.md`): reads an image, calls `image2outline()`, writes
+  `.svg`/`.dxf` files.
+- Performance smoke test (`test/integration/performance.test.ts`):
+  regression guard against a large (2000x2000px) image, budgeted with
+  generous headroom over the measured ~2s baseline (decode through both
+  writers).
+- Decision recorded (`ROADMAP.md` M4): browser adapter deferred to
+  Future/stretch — additive behind the existing `ImageDecodeAdapter`
+  interface, not blocking this milestone.
+
 ### Added (M3 — Output writers)
 
 - SVG writer (`src/writers/svg.ts`): one `<path>` per shape, outer +

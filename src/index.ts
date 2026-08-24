@@ -2,10 +2,13 @@
  * Public entry point for `@richardmcquiston/makertool-image2outline`.
  *
  * One function, one options type, one result type — see PLAN.md §1
- * ("small, typed public surface"). The pipeline itself (Stages 1-4 in
- * PLAN.md) is not implemented yet; this stub exists so the public
- * signature is fixed before that work starts, per the Stage 0 exit
- * criteria in PLAN.md.
+ * ("small, typed public surface"). This wires the Stage 1-3 pipeline
+ * (decode -> vision -> calibrate -> write) behind that stable signature
+ * (PLAN.md Stage 4). The Node image-decode adapter is hardwired here —
+ * it's the only concrete adapter (`src/adapters/`) that exists yet; a
+ * browser build would substitute a different adapter at this same seam
+ * without touching `src/vision/`, `src/calibration/`, or `src/writers/`
+ * (PLAN.md §1, "framework/runtime agnostic core").
  */
 
 export type {
@@ -19,23 +22,42 @@ export type {
   Unit,
 } from "./types.js";
 
-import type { Image2OutlineOptions, ImageInput, OutlineResult } from "./types.js";
+import { nodeImageDecodeAdapter } from "./adapters/node.js";
+import { calibrate } from "./calibration/calibrate.js";
+import type { Image2OutlineOptions, ImageInput, OutlineOutput, OutlineResult } from "./types.js";
+import { traceImage } from "./vision/pipeline.js";
+import { writeDxf } from "./writers/dxf.js";
+import { writeSvg } from "./writers/svg.js";
 
 /**
  * Trace the object(s) in `input` and produce a vector outline in the
  * requested format(s).
- *
- * @throws Currently always throws — the vision/calibration/writer
- * pipeline lands in later stages (see ROADMAP.md M1-M4).
  */
 export async function image2outline(
   input: ImageInput,
   options: Image2OutlineOptions,
 ): Promise<OutlineResult> {
-  void input;
-  void options;
-  throw new Error(
-    "image2outline() is not implemented yet — the public API is frozen (Stage 0) " +
-      "but the pipeline lands in later stages, see ROADMAP.md.",
-  );
+  if (options.formats.length === 0) {
+    throw new RangeError("options.formats must include at least one output format");
+  }
+
+  const decoded = await nodeImageDecodeAdapter.decode(input);
+  const pixelDoc = traceImage(decoded);
+  const doc = calibrate(pixelDoc, {
+    ...(options.scale ? { scale: options.scale } : {}),
+    ...(options.flipY !== undefined ? { flipY: options.flipY } : {}),
+  });
+
+  const outputs: OutlineOutput[] = options.formats.map((format) => {
+    switch (format) {
+      case "svg":
+        return { format, content: writeSvg(doc) };
+      case "dxf":
+        return { format, content: writeDxf(doc) };
+      default:
+        throw new RangeError(`Unsupported output format: ${String(format)}`);
+    }
+  });
+
+  return { unit: doc.unit, width: doc.width, height: doc.height, outputs };
 }
