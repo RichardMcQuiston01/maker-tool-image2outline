@@ -71,4 +71,12 @@ describe("image2outline", () => {
 
     expect(withoutFlip.outputs[0]!.content).not.toEqual(withFlip.outputs[0]!.content);
   });
+
+  it("rejects an empty formats list instead of silently producing no output", async () => {
+    // `formats` is a non-empty tuple at the type level, so this can only be
+    // reached by a JS (not TS) caller — simulated here via an unsafe cast.
+    const png = await synthesizeSquarePng(20, 5, 15);
+    const options = { formats: [] } as unknown as Image2OutlineOptions;
+    await expect(image2outline(png, options)).rejects.toThrow(RangeError);
+  });
 });

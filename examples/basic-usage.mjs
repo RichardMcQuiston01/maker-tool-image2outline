@@ -29,7 +29,14 @@ function parseArgs(argv) {
   let flipY = false;
   for (let i = 0; i < rest.length; i++) {
     if (rest[i] === "--mm-per-px") {
-      pixelsPerMm = 1 / Number(rest[++i]);
+      const raw = rest[i + 1];
+      const mmPerPx = raw === undefined ? NaN : Number(raw);
+      if (!Number.isFinite(mmPerPx) || mmPerPx <= 0) {
+        console.error(`--mm-per-px requires a positive number, got ${raw ?? "(nothing)"}`);
+        process.exit(1);
+      }
+      pixelsPerMm = 1 / mmPerPx;
+      i++;
     } else if (rest[i] === "--flip-y") {
       flipY = true;
     }

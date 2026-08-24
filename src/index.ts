@@ -37,6 +37,10 @@ export async function image2outline(
   input: ImageInput,
   options: Image2OutlineOptions,
 ): Promise<OutlineResult> {
+  if (options.formats.length === 0) {
+    throw new RangeError("options.formats must include at least one output format");
+  }
+
   const decoded = await nodeImageDecodeAdapter.decode(input);
   const pixelDoc = traceImage(decoded);
   const doc = calibrate(pixelDoc, {
