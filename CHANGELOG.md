@@ -37,6 +37,24 @@
   synthetic images built in test code rather than checked-in binary
   fixtures.
 
+### Added (M2 — Calibration & units)
+
+- Calibration stage (`src/calibration/calibrate.ts`): a pure
+  `VectorDocument -> VectorDocument` transform, tested against hand-built
+  IR fixtures independent of the vision pipeline and output writers.
+  - `calibrate(doc, options)` with no options returns `doc` unchanged
+    (px passthrough), per the Stage 2 exit criteria.
+  - `ManualScale` (`pixelsPerUnit` + target `unit`) converts pixel
+    coordinates to real-world mm/in, scaling `width`/`height` and every
+    point (including `cubic` control points) accordingly.
+  - `flipY` option normalizes image convention (Y down, origin top-left)
+    to CAD convention (Y up, origin bottom-left); flipping also inverts
+    each contour's `winding`, since a Y-reflection inverts polygon
+    orientation.
+  - New fixture (`test/fixtures/ir/index.ts`): `pixelSquareDocument`, a
+    genuine `unit: "px"` document for calibration tests (the existing
+    fixtures are pre-calibrated).
+
 ### Added (M3 — Output writers)
 
 - SVG writer (`src/writers/svg.ts`): one `<path>` per shape, outer +

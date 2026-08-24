@@ -83,6 +83,32 @@ export const twoSquaresDocument: VectorDocument = {
   ],
 };
 
+/** A 100x100 px square, no holes — genuine pixel-space (uncalibrated) input, for calibration tests. */
+export const pixelSquareDocument: VectorDocument = {
+  unit: "px",
+  width: 100,
+  height: 100,
+  shapes: [
+    {
+      id: "square",
+      outer: {
+        isHole: false,
+        winding: "clockwise",
+        path: {
+          start: { x: 0, y: 0 },
+          closed: true,
+          segments: [
+            { type: "line", to: { x: 100, y: 0 } },
+            { type: "line", to: { x: 100, y: 100 } },
+            { type: "line", to: { x: 0, y: 100 } },
+          ],
+        },
+      },
+      holes: [],
+    },
+  ],
+};
+
 /** A shape with one cubic bezier segment, to exercise curve handling in both writers. */
 export const curvedDocument: VectorDocument = {
   unit: "px",
