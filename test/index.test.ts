@@ -79,4 +79,12 @@ describe("image2outline", () => {
     const options = { formats: [] } as unknown as Image2OutlineOptions;
     await expect(image2outline(png, options)).rejects.toThrow(RangeError);
   });
+
+  it("rejects an unsupported format instead of silently including an undefined output", async () => {
+    // `OutputFormat` is a closed union at the type level, so this can only
+    // be reached by a JS (not TS) caller — simulated via an unsafe cast.
+    const png = await synthesizeSquarePng(20, 5, 15);
+    const options = { formats: ["pdf"] } as unknown as Image2OutlineOptions;
+    await expect(image2outline(png, options)).rejects.toThrow(RangeError);
+  });
 });

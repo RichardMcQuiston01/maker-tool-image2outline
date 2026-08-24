@@ -54,6 +54,8 @@ export async function image2outline(
         return { format, content: writeSvg(doc) };
       case "dxf":
         return { format, content: writeDxf(doc) };
+      default:
+        throw new RangeError(`Unsupported output format: ${String(format)}`);
     }
   });
 
