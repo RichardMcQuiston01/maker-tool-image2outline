@@ -1,0 +1,35 @@
+{
+  "circle-gradient-noise.png": {
+    "width": 200,
+    "height": 200,
+    "shapes": 1,
+    "holes": 0,
+    "area": 11309.733552923255,
+    "tolerance": 0.2
+  },
+  "square-vignette-noise.png": {
+    "width": 200,
+    "height": 200,
+    "shapes": 1,
+    "holes": 0,
+    "area": 6400,
+    "tolerance": 0.2
+  },
+  "ring-noise.png": {
+    "width": 200,
+    "height": 200,
+    "shapes": 1,
+    "holes": 1,
+    "area": 15393.804002589986,
+    "holeArea": 3848.4510006474966,
+    "tolerance": 0.2
+  },
+  "star-noise.png": {
+    "width": 200,
+    "height": 200,
+    "shapes": 1,
+    "holes": 0,
+    "area": 7053.423027509677,
+    "tolerance": 0.25
+  }
+}

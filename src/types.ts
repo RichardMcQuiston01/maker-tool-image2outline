@@ -58,6 +58,13 @@ export interface Image2OutlineOptions {
    * "Future / stretch") and is not part of this option yet.
    */
   readonly scale?: ScaleCalibration;
+  /**
+   * Flip Y so it increases upward and move the origin to the bottom-left
+   * (CAD convention), instead of image convention (Y down, origin
+   * top-left). Default false. SVG consumers typically don't need this —
+   * SVG is itself Y-down — but DXF/CAD/CAM consumers usually do.
+   */
+  readonly flipY?: boolean;
 }
 
 /** One generated output document, in the requested format. */
