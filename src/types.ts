@@ -1,5 +1,5 @@
 /**
- * Public API types for `@richardmcquiston/makertool-image2outline`.
+ * Public API types for `@richardmcquiston01/makertool-image2outline`.
  *
  * This is the contract other projects should depend on when embedding
  * this package (PLAN.md §1, "small, typed public surface"). Everything
