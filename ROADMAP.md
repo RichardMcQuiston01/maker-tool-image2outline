@@ -1,6 +1,6 @@
 # Roadmap
 
-Milestone-based sequencing for `@richardmcquiston/makertool-image2outline`.
+Milestone-based sequencing for `@richardmcquiston01/makertool-image2outline`.
 No calendar dates — velocity on a solo/agent-driven project is hard to
 predict — but the order and dependencies below are fixed. See `PLAN.md`
 for the full architectural rationale and agent-ownership breakdown behind

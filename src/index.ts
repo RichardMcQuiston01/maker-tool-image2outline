@@ -1,5 +1,5 @@
 /**
- * Public entry point for `@richardmcquiston/makertool-image2outline`.
+ * Public entry point for `@richardmcquiston01/makertool-image2outline`.
  *
  * One function, one options type, one result type — see PLAN.md §1
  * ("small, typed public surface"). This wires the Stage 1-3 pipeline

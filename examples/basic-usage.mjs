@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Minimal Node usage example (PLAN.md Stage 4) for
- * `@richardmcquiston/makertool-image2outline`: reads an image file, runs
+ * `@richardmcquiston01/makertool-image2outline`: reads an image file, runs
  * it through `image2outline()`, and writes an `.svg` and/or `.dxf` file
  * alongside it.
  *

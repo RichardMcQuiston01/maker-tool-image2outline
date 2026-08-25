@@ -1,6 +1,6 @@
 # Development Plan
 
-`@richardmcquiston/makertool-image2outline` — a framework-agnostic TypeScript
+`@richardmcquiston01/makertool-image2outline` — a framework-agnostic TypeScript
 package that turns a raster image (photo, scan) into a vector outline (SVG
 and/or DXF) of the object(s) in it.
 
@@ -159,7 +159,7 @@ stated end goal).
 - Fill in README Prerequisites/Installation/Usage/Examples.
 - Generated API docs (typedoc) from the Stage 0 public types.
 - CHANGELOG entries, semver tagging, npm publish under the
-  `@richardmcquiston` scope.
+  `@richardmcquiston01` scope.
 
 **Depends on:** Stage 4.
 

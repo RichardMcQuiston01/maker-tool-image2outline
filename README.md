@@ -1,4 +1,4 @@
-# @richardmcquiston/makertool-image2outline
+# @richardmcquiston01/makertool-image2outline
 
 ## Overview
 
@@ -16,7 +16,7 @@ Framework agnostic TypeScript NPM package that can generate an outline(DXF and/o
 ### Installation
 
 ```sh
-npm install @richardmcquiston/makertool-image2outline
+npm install @richardmcquiston01/makertool-image2outline
 ```
 
 ### Usage
@@ -27,7 +27,7 @@ The package has a single entry point, `image2outline()`. Pass it an image
 
 ```ts
 import { writeFile } from "node:fs/promises";
-import { image2outline } from "@richardmcquiston/makertool-image2outline";
+import { image2outline } from "@richardmcquiston01/makertool-image2outline";
 
 const result = await image2outline("photo.png", { formats: ["svg", "dxf"] });
 

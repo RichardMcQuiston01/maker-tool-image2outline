@@ -1,6 +1,6 @@
 # Examples
 
-Minimal usage examples for `@richardmcquiston/makertool-image2outline`
+Minimal usage examples for `@richardmcquiston01/makertool-image2outline`
 (PLAN.md Stage 4). Full README docs land in Stage 5 — these exist to prove
 the public API is actually usable end to end.
 
