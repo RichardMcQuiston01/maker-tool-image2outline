@@ -121,8 +121,11 @@ _Depends on: M4._
 - [x] `package.json` prepared for publish (version `1.0.0`,
       `publishConfig.access: "public"`, keywords/homepage/bugs filled
       in, `LICENSE` populated) and verified via `npm publish --dry-run`.
-      The actual `npm publish` is left to the package owner, who has the
-      npm credentials this environment doesn't.
+- [x] Publish automated (`.github/workflows/publish.yml`): pushing a
+      `v*.*.*` tag runs the full validation suite, checks the tag matches
+      `package.json`'s version, and runs `npm publish` using the
+      `NPM_TOKEN` repo secret. Creating the tag (and deciding when to cut
+      a release) stays a manual, deliberate action by the package owner.
 
 **Ships:** `v1.0.0`, the first version intended for reuse in other
 projects (the stated goal of this package).
