@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## Unreleased
+
+### Added
+
+- CI: `.github/workflows/publish.yml` automates `npm publish` on a
+  pushed `v*.*.*` tag — runs the full validation suite, checks the tag
+  matches `package.json`'s version, then publishes using the
+  `NPM_TOKEN` repository secret. Cutting a release is still a manual,
+  deliberate step (creating and pushing the tag); everything after that
+  is automatic.
+
 ## 1.0.0
 
 First tagged release — `image2outline()` works end-to-end (image in,
