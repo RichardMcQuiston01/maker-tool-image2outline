@@ -1,0 +1,11 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs/api",
+  "name": "@richardmcquiston/makertool-image2outline",
+  "readme": "none",
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "excludeExternals": true,
+  "sort": ["source-order"]
+}

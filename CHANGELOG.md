@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## Unreleased
+## 1.0.0
+
+First tagged release — `image2outline()` works end-to-end (image in,
+calibrated `.svg`/`.dxf` out), documented, and ready for reuse in other
+projects (the stated goal of this package; see `PLAN.md` §1). Everything
+below shipped incrementally as `PLAN.md`/`ROADMAP.md` milestones M0–M5,
+listed here in that order rather than actual merge order.
 
 ### Added (M0 — Foundation)
 
@@ -55,6 +61,24 @@
     genuine `unit: "px"` document for calibration tests (the existing
     fixtures are pre-calibrated).
 
+### Added (M3 — Output writers)
+
+- SVG writer (`src/writers/svg.ts`): one `<path>` per shape, outer +
+  holes as subpaths under `fill-rule="evenodd"` (so holes render
+  correctly regardless of contour winding), `line`/`cubic` segment
+  support, unit-aware `viewBox`/`width`/`height`.
+- DXF writer (`src/writers/dxf.ts`): minimal hand-rolled ASCII DXF R2000
+  (`AC1015`) — `HEADER` (`$ACADVER`, `$INSUNITS`), `TABLES` (`LAYER`),
+  one `LWPOLYLINE` per contour (outer and holes alike — DXF has no
+  native hole concept, and for laser/CNC use a hole is just another cut
+  path). `cubic` segments are flattened to straight vertices
+  (`bezierSegments` option); `SPLINE` entities are deferred. Hand-rolled
+  rather than a third-party dependency — see the file's header comment
+  for the reasoning.
+- Golden-file and round-trip tests for both writers against hand-built
+  IR fixtures (`test/fixtures/ir/`), independent of the vision pipeline.
+  Not wired behind the public API yet — that's Stage 4.
+
 ### Added (M4 — Integration & validation)
 
 - `image2outline()` (`src/index.ts`) is wired end-to-end: Node
@@ -84,20 +108,12 @@
   Future/stretch — additive behind the existing `ImageDecodeAdapter`
   interface, not blocking this milestone.
 
-### Added (M3 — Output writers)
+### Added (M5 — Docs & release)
 
-- SVG writer (`src/writers/svg.ts`): one `<path>` per shape, outer +
-  holes as subpaths under `fill-rule="evenodd"` (so holes render
-  correctly regardless of contour winding), `line`/`cubic` segment
-  support, unit-aware `viewBox`/`width`/`height`.
-- DXF writer (`src/writers/dxf.ts`): minimal hand-rolled ASCII DXF R2000
-  (`AC1015`) — `HEADER` (`$ACADVER`, `$INSUNITS`), `TABLES` (`LAYER`),
-  one `LWPOLYLINE` per contour (outer and holes alike — DXF has no
-  native hole concept, and for laser/CNC use a hole is just another cut
-  path). `cubic` segments are flattened to straight vertices
-  (`bezierSegments` option); `SPLINE` entities are deferred. Hand-rolled
-  rather than a third-party dependency — see the file's header comment
-  for the reasoning.
-- Golden-file and round-trip tests for both writers against hand-built
-  IR fixtures (`test/fixtures/ir/`), independent of the vision pipeline.
-  Not wired behind the public API yet — that's Stage 4.
+- README filled in (Prerequisites/Installation/Usage/Examples).
+- Generated API docs via `typedoc` (`npm run docs` -> `docs/api/`),
+  scoped to the public surface only (`src/index.ts`'s exports).
+- `LICENSE` populated with the actual Apache License 2.0 text (previously
+  an empty file, despite `package.json`/README already declaring
+  `Apache-2.0`); `COPYRIGHT` no longer contradicts that with an
+  "All rights reserved" line.

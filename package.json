@@ -1,10 +1,26 @@
 {
   "name": "@richardmcquiston/makertool-image2outline",
-  "version": "0.1.0-alpha.0",
+  "version": "1.0.0",
   "description": "Framework-agnostic TypeScript package that generates a vector outline (SVG and/or DXF) of an object from an image.",
+  "keywords": [
+    "svg",
+    "dxf",
+    "vectorize",
+    "image-tracing",
+    "contour",
+    "vector-outline",
+    "laser-cutting",
+    "cnc",
+    "maker"
+  ],
+  "homepage": "https://github.com/RichardMcQuiston01/maker-tool-image2outline#readme",
+  "bugs": "https://github.com/RichardMcQuiston01/maker-tool-image2outline/issues",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -32,6 +48,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "docs": "typedoc",
     "prepublishOnly": "npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "repository": {
@@ -47,6 +64,7 @@
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.4.2",
     "tsup": "^8.3.5",
+    "typedoc": "^0.28.20",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.0",
     "vitest": "^4.1.11"
