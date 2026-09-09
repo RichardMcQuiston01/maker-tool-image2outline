@@ -48,16 +48,36 @@ export interface ScaleCalibration {
   readonly unit: Exclude<Unit, "px">;
 }
 
+/**
+ * Automatic scale calibration (v1.1.0) from a solid square marker of known
+ * real-world size placed in the frame, instead of measuring
+ * `pixelsPerUnit` yourself. The marker is detected by its own geometry
+ * (equal sides, equal diagonals) and works at any rotation, but there must
+ * be exactly one such square-like shape in the traced image — mutually
+ * exclusive with `scale`.
+ */
+export interface ReferenceMarker {
+  /** The marker's real-world side length. */
+  readonly size: number;
+  readonly unit: Exclude<Unit, "px">;
+}
+
 export interface Image2OutlineOptions {
   /** Which output format(s) to produce; at least one is required. */
   readonly formats: readonly [OutputFormat, ...OutputFormat[]];
   /**
-   * Manual scale calibration. When omitted, output coordinates stay in
-   * pixel space (`unit: "px"` on the result) — see PLAN.md Stage 2.
-   * Automatic reference-marker calibration is a stretch goal (ROADMAP.md,
-   * "Future / stretch") and is not part of this option yet.
+   * Manual scale calibration. When omitted (and `referenceMarker` isn't
+   * given either), output coordinates stay in pixel space (`unit: "px"`
+   * on the result) — see PLAN.md Stage 2. Mutually exclusive with
+   * `referenceMarker`.
    */
   readonly scale?: ScaleCalibration;
+  /**
+   * Derive scale automatically from a known-size marker in the image,
+   * instead of supplying `scale` manually. Mutually exclusive with
+   * `scale`.
+   */
+  readonly referenceMarker?: ReferenceMarker;
   /**
    * Flip Y so it increases upward and move the origin to the bottom-left
    * (CAD convention), instead of image convention (Y down, origin
