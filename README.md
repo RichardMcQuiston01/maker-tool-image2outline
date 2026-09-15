@@ -51,6 +51,24 @@ const result = await image2outline("photo.png", {
 });
 ```
 
+Don't know `pixelsPerUnit` ahead of time? Place a solid square marker of
+known real-world size in the frame instead, and let it be detected
+automatically:
+
+```ts
+const result = await image2outline("photo-with-marker.png", {
+  formats: ["dxf"],
+  // A 20mm square marker is somewhere in the frame (any rotation).
+  referenceMarker: { size: 20, unit: "mm" },
+});
+```
+
+The marker is detected by its own geometry (four equal sides, equal
+diagonals) — it doesn't need to be axis-aligned — and is excluded from the
+output; only the traced object(s) remain. There must be exactly one such
+square-like shape in the image. `scale` and `referenceMarker` are mutually
+exclusive.
+
 See the generated API docs (`npm run docs`, below) for the full
 `Image2OutlineOptions`/`OutlineResult` shape.
 

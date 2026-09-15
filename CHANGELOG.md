@@ -1,15 +1,35 @@
 # CHANGELOG
 
-## Unreleased
+## 1.1.0
 
 ### Added
 
+- Automatic reference-marker calibration
+  (`src/calibration/referenceMarker.ts`), promoting the "Future / stretch"
+  goal from `ROADMAP.md` M2 to a shipped feature. `Image2OutlineOptions`
+  gains `referenceMarker: { size, unit }`: place a solid square marker of
+  known real-world size in the frame, and `image2outline()` derives
+  `pixelsPerUnit` from it automatically instead of requiring manual
+  measurement. Detection works from the traced polygon's own edge and
+  diagonal lengths (four equal sides, equal diagonals), so the marker
+  doesn't need to be axis-aligned in the photo. The marker shape is
+  excluded from the output; only the traced object(s) remain. Throws a
+  clear error if zero or more than one shape in the image matches the
+  marker geometry, or if nothing remains to trace after removing it.
+  Mutually exclusive with `scale`.
 - CI: `.github/workflows/publish.yml` automates `npm publish` on a
   pushed `v*.*.*` tag — runs the full validation suite, checks the tag
   matches `package.json`'s version, then publishes using the
   `NPM_TOKEN` repository secret. Cutting a release is still a manual,
   deliberate step (creating and pushing the tag); everything after that
   is automatic.
+
+### Fixed
+
+- Bumped `sharp` (0.35.3 -> 0.35.4) and the `typedoc` dev dependency's
+  transitive `js-yaml` (4.3.1 -> 4.3.2) to resolve high-severity advisories
+  (`GHSA-rgj7-g3m4-5g8c`, `GHSA-2883-xcg3-v3hh`) — both within the existing
+  declared semver ranges, no API changes.
 
 ## 1.0.0
 

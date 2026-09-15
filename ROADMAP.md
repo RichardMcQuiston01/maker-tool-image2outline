@@ -48,8 +48,8 @@ _Depends on: M0. Can run in parallel with the back half of M1._
 - [x] Coordinate normalization (origin, CAD Y-axis convention)
 - [x] Configurable output units — `mm`/`in` via `scale.unit`; `px`
       passthrough when no `scale` is given
-- [ ] Stretch: reference-marker auto-calibration (deferred — see Future /
-      stretch)
+- [x] Stretch: reference-marker auto-calibration — shipped later as M6
+      (`v1.1.0`), not part of the original M2 scope
 
 **Ships:** IR carries real-world units.
 
@@ -130,13 +130,32 @@ _Depends on: M4._
 **Ships:** `v1.0.0`, the first version intended for reuse in other
 projects (the stated goal of this package).
 
-## Future / stretch (post-`v1.0.0`) ⬜
+## M6 — Automatic reference-marker calibration (`v1.1.0`) ✅
 
-Not scheduled into a milestone yet; revisit after v1.0 usage in a real
-consuming project surfaces actual needs.
+_Depends on: M5. Not part of the original 6-stage plan in `PLAN.md` —
+promoted from "Future / stretch" once a concrete need came up post-v1.0.0._
+
+- [x] Marker detection (`src/calibration/referenceMarker.ts`): identifies a
+      solid square marker of known real-world size among the traced
+      shapes, from the polygon's own edge/diagonal lengths (rotation
+      doesn't matter). Throws a clear error on zero or multiple matches.
+- [x] `Image2OutlineOptions.referenceMarker` (mutually exclusive with
+      `scale`): derives `pixelsPerUnit` from the detected marker instead
+      of requiring manual measurement; the marker shape is excluded from
+      the output.
+- [x] Unit tests against hand-built IR fixtures (axis-aligned marker,
+      45°-rotated marker, no-marker and ambiguous-multiple-marker error
+      cases, tolerance boundaries) plus an end-to-end test through
+      `image2outline()` against a synthesized image.
+
+**Ships:** `v1.1.0` — automatic calibration without manual scale input.
+
+## Future / stretch (post-`v1.1.0`) ⬜
+
+Not scheduled into a milestone yet; revisit after real-world usage
+surfaces actual needs.
 
 - Browser adapter + in-browser demo (if not pulled into M4)
-- Automatic reference-marker calibration (if not pulled into M2)
 - Batch/multi-image processing API
 - ML-assisted segmentation for complex/low-contrast backgrounds
 - Simple GUI/preview tool built on top of the package

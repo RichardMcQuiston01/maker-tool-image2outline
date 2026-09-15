@@ -25,6 +25,54 @@ async function synthesizeSquarePng(
     .toBuffer();
 }
 
+/** Synthesizes a PNG with a square "marker" plus a separate circle "object". */
+async function synthesizeMarkerAndCirclePng(size: number): Promise<Buffer> {
+  const channels = 3;
+  const data = Buffer.alloc(size * size * channels, 255);
+  const paint = (x: number, y: number): void => {
+    const p = (y * size + x) * channels;
+    data[p] = 0;
+    data[p + 1] = 0;
+    data[p + 2] = 0;
+  };
+
+  // Marker: a 40x40px square in a corner, sized well above blur/simplification noise.
+  for (let y = 10; y < 50; y++) {
+    for (let x = 10; x < 50; x++) paint(x, y);
+  }
+
+  // Object: a circle of radius 40px centered away from the marker.
+  const cx = 140;
+  const cy = 140;
+  const r = 40;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      if ((x - cx) ** 2 + (y - cy) ** 2 <= r * r) paint(x, y);
+    }
+  }
+
+  return sharp(data, { raw: { width: size, height: size, channels } })
+    .png()
+    .toBuffer();
+}
+
+/** Synthesizes a PNG containing only a square marker, no other shapes. */
+async function synthesizeMarkerOnlyPng(size: number): Promise<Buffer> {
+  const channels = 3;
+  const data = Buffer.alloc(size * size * channels, 255);
+  for (let y = 10; y < 50; y++) {
+    for (let x = 10; x < 50; x++) {
+      const p = (y * size + x) * channels;
+      data[p] = 0;
+      data[p + 1] = 0;
+      data[p + 2] = 0;
+    }
+  }
+  return sharp(data, { raw: { width: size, height: size, channels } })
+    .png()
+    .toBuffer();
+}
+
 describe("image2outline", () => {
   it("is exported with the frozen public signature", () => {
     expect(typeof image2outline).toBe("function");
@@ -86,5 +134,47 @@ describe("image2outline", () => {
     const png = await synthesizeSquarePng(20, 5, 15);
     const options = { formats: ["pdf"] } as unknown as Image2OutlineOptions;
     await expect(image2outline(png, options)).rejects.toThrow(RangeError);
+  });
+
+  it("derives scale automatically from a reference marker and excludes it from the output", async () => {
+    const png = await synthesizeMarkerAndCirclePng(200);
+    const result = await image2outline(png, {
+      formats: ["svg"],
+      referenceMarker: { size: 5, unit: "mm" },
+    });
+
+    // Marker measures ~40px = 5mm (pixelsPerUnit ~= 8); the 200x200px image
+    // scales to ~25x25mm regardless of which shapes remain. Blur/simplify
+    // perturb the traced marker slightly, so allow a generous tolerance
+    // rather than an exact match — this test is about the wiring
+    // (detection -> exclusion -> calibration), not geometric precision,
+    // which the referenceMarker unit tests already cover exactly.
+    expect(result.unit).toBe("mm");
+    expect(result.width).toBeGreaterThan(20);
+    expect(result.width).toBeLessThan(30);
+    expect(result.height).toBeGreaterThan(20);
+    expect(result.height).toBeLessThan(30);
+
+    // Only the circle "object" should remain — the marker was excluded.
+    const svg = result.outputs[0]!.content;
+    expect(svg.match(/<path/g)).toHaveLength(1);
+  });
+
+  it("rejects specifying both scale and referenceMarker", async () => {
+    const png = await synthesizeMarkerAndCirclePng(200);
+    await expect(
+      image2outline(png, {
+        formats: ["svg"],
+        scale: { pixelsPerUnit: 2, unit: "mm" },
+        referenceMarker: { size: 5, unit: "mm" },
+      }),
+    ).rejects.toThrow(RangeError);
+  });
+
+  it("rejects an image where nothing remains after removing the reference marker", async () => {
+    const png = await synthesizeMarkerOnlyPng(100);
+    await expect(
+      image2outline(png, { formats: ["svg"], referenceMarker: { size: 5, unit: "mm" } }),
+    ).rejects.toThrow(/no shapes remain/i);
   });
 });

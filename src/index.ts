@@ -18,12 +18,14 @@ export type {
   OutlineOutput,
   OutlineResult,
   OutputFormat,
+  ReferenceMarker,
   ScaleCalibration,
   Unit,
 } from "./types.js";
 
 import { nodeImageDecodeAdapter } from "./adapters/node.js";
 import { calibrate } from "./calibration/calibrate.js";
+import { detectReferenceMarker, excludeShape } from "./calibration/referenceMarker.js";
 import type { Image2OutlineOptions, ImageInput, OutlineOutput, OutlineResult } from "./types.js";
 import { traceImage } from "./vision/pipeline.js";
 import { writeDxf } from "./writers/dxf.js";
@@ -40,11 +42,25 @@ export async function image2outline(
   if (options.formats.length === 0) {
     throw new RangeError("options.formats must include at least one output format");
   }
+  if (options.scale && options.referenceMarker) {
+    throw new RangeError("options.scale and options.referenceMarker are mutually exclusive");
+  }
 
   const decoded = await nodeImageDecodeAdapter.decode(input);
-  const pixelDoc = traceImage(decoded);
+  let pixelDoc = traceImage(decoded);
+  let scale = options.scale;
+
+  if (options.referenceMarker) {
+    const detected = detectReferenceMarker(pixelDoc, options.referenceMarker);
+    pixelDoc = excludeShape(pixelDoc, detected.shapeId);
+    if (pixelDoc.shapes.length === 0) {
+      throw new Error("No shapes remain after removing the reference marker — nothing to trace.");
+    }
+    scale = detected.scale;
+  }
+
   const doc = calibrate(pixelDoc, {
-    ...(options.scale ? { scale: options.scale } : {}),
+    ...(scale ? { scale } : {}),
     ...(options.flipY !== undefined ? { flipY: options.flipY } : {}),
   });
 
