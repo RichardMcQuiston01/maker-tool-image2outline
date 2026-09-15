@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## 1.1.3
+
+### Fixed
+
+- Traced outlines of real photographed objects no longer lose part of their
+  silhouette where a glossy/specular highlight sits along the object's
+  edge (e.g. a tool handle's bright highlight strip reading as background
+  because its luma is nearly as light as the white backdrop, even though
+  it's still a visibly saturated color). `preprocess()` now thresholds on
+  a saturation-aware intensity (`luma - chroma`, `toThresholdIntensity` in
+  `src/vision/preprocess.ts`) instead of plain grayscale luma, pulling any
+  saturated pixel's effective intensity back down toward its true darkness
+  regardless of how bright it looks. Identical to plain grayscale for
+  non-photographic (R=G=B) input, so no behavior change there.
+- Fixed a related rounding inconsistency in `binarize`: `otsuThreshold`
+  finds its optimal split over integer-rounded histogram buckets, but
+  `binarize` was comparing raw unrounded floats against that integer
+  threshold — a pixel whose raw value was a hair above the threshold but
+  rounded down to it could end up on the wrong side of its own cluster.
+  `binarize` now compares the rounded value, matching how the threshold
+  was derived.
+
 ## 1.1.2
 
 ### Fixed
