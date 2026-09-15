@@ -56,6 +56,50 @@ async function synthesizeMarkerAndCirclePng(size: number): Promise<Buffer> {
     .toBuffer();
 }
 
+/**
+ * Synthesizes a PNG of a solid black object on white, with a few tiny white
+ * "printed logo/text" specks punched inside it plus one much larger
+ * legitimate hole — modeled on a real photographed tool whose printed
+ * branding/model number binarized into spurious tiny holes (see
+ * `traceComponent`'s `DEFAULT_MIN_HOLE_AREA_RATIO`).
+ */
+async function synthesizeObjectWithSpeckledLogoPng(size: number): Promise<Buffer> {
+  const channels = 3;
+  const data = Buffer.alloc(size * size * channels, 255);
+  const paint = (x: number, y: number, value: number): void => {
+    const p = (y * size + x) * channels;
+    data[p] = value;
+    data[p + 1] = value;
+    data[p + 2] = value;
+  };
+
+  // Solid black object body: 160x160.
+  for (let y = 20; y < 180; y++) {
+    for (let x = 20; x < 180; x++) paint(x, y, 0);
+  }
+
+  // Tiny "printed logo/text" specks: 4x4 each, ~0.06% of the object's area.
+  for (const [ox, oy] of [
+    [40, 40],
+    [80, 40],
+    [120, 40],
+    [40, 80],
+  ]) {
+    for (let y = oy!; y < oy! + 4; y++) {
+      for (let x = ox!; x < ox! + 4; x++) paint(x, y, 255);
+    }
+  }
+
+  // One genuinely large hole: 40x40, ~6% of the object's area.
+  for (let y = 120; y < 160; y++) {
+    for (let x = 120; x < 160; x++) paint(x, y, 255);
+  }
+
+  return sharp(data, { raw: { width: size, height: size, channels } })
+    .png()
+    .toBuffer();
+}
+
 /** Synthesizes a PNG containing only a square marker, no other shapes. */
 async function synthesizeMarkerOnlyPng(size: number): Promise<Buffer> {
   const channels = 3;
@@ -169,6 +213,18 @@ describe("image2outline", () => {
         referenceMarker: { size: 5, unit: "mm" },
       }),
     ).rejects.toThrow(RangeError);
+  });
+
+  it("ignores tiny printed-logo-sized specks but keeps a genuinely large hole", async () => {
+    const png = await synthesizeObjectWithSpeckledLogoPng(200);
+    const result = await image2outline(png, { formats: ["dxf"] });
+
+    // DXF writes one LWPOLYLINE per contour (outer + each hole) — see
+    // src/writers/dxf.ts. Exactly 2 means the outer silhouette plus the one
+    // real hole; the four printed-logo specks were correctly dropped as
+    // noise rather than traced as spurious holes.
+    const dxf = result.outputs[0]!.content;
+    expect(dxf.match(/LWPOLYLINE/g)).toHaveLength(2);
   });
 
   it("rejects an image where nothing remains after removing the reference marker", async () => {

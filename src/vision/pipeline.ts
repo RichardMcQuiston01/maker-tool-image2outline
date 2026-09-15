@@ -23,6 +23,13 @@ import type { PixelPoint } from "./types.js";
 export interface VisionPipelineOptions extends PreprocessOptions {
   /** Ramer-Douglas-Peucker simplification tolerance, in pixels. 0 disables it. */
   readonly simplifyEpsilon?: number;
+  /**
+   * Minimum hole area, as a fraction of its enclosing shape's own pixel
+   * area, below which a hole is discarded as noise rather than traced —
+   * see `traceComponent`'s `DEFAULT_MIN_HOLE_AREA_RATIO`. Pass `0` to keep
+   * every hole regardless of size.
+   */
+  readonly minHoleAreaRatio?: number;
 }
 
 const DEFAULT_SIMPLIFY_EPSILON = 1.5;
@@ -32,12 +39,16 @@ export function traceImage(
   image: DecodedImage,
   options: VisionPipelineOptions = {},
 ): VectorDocument {
-  const { simplifyEpsilon = DEFAULT_SIMPLIFY_EPSILON, ...preprocessOptions } = options;
+  const {
+    simplifyEpsilon = DEFAULT_SIMPLIFY_EPSILON,
+    minHoleAreaRatio,
+    ...preprocessOptions
+  } = options;
   const mask = preprocess(image, preprocessOptions);
   const components = labelComponents(mask);
 
   const shapes: VectorShape[] = components.map((component, index) => {
-    const traced = traceComponent(mask.width, mask.height, component);
+    const traced = traceComponent(mask.width, mask.height, component, minHoleAreaRatio);
     return {
       id: `shape-${index}`,
       outer: buildOuterContour(traced.outer, simplifyEpsilon),

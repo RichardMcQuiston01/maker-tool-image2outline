@@ -62,6 +62,32 @@ describe("traceImage", () => {
     expect(["clockwise", "counterclockwise"]).toContain(shape!.holes[0]!.winding);
   });
 
+  it("drops tiny printed-logo-sized specks by default, keeping a real hole", () => {
+    // A solid 20x20 object with a handful of 1-pixel "printed text" specks
+    // (each ~0.25% of the shape's area, well under the default 3%
+    // threshold) plus one genuinely large hole (~19% of the shape's area,
+    // well above it) — modeled on a photographed tool whose printed
+    // logo/model number binarized into spurious tiny holes (see
+    // `traceComponent`'s `DEFAULT_MIN_HOLE_AREA_RATIO`).
+    const rows: (0 | 1)[][] = Array.from({ length: 20 }, () => Array(20).fill(0));
+    for (let y = 1; y <= 18; y++) for (let x = 1; x <= 18; x++) rows[y]![x] = 1;
+    for (const [x, y] of [
+      [3, 3],
+      [6, 3],
+      [9, 3],
+      [12, 3],
+      [15, 3],
+    ]) {
+      rows[y!]![x!] = 0;
+    }
+    for (let y = 12; y <= 15; y++) for (let x = 12; x <= 15; x++) rows[y]![x] = 0;
+
+    const doc = traceImage(buildImage(rows), { blurRadius: 0, simplifyEpsilon: 0.5 });
+
+    expect(doc.shapes).toHaveLength(1);
+    expect(doc.shapes[0]!.holes).toHaveLength(1);
+  });
+
   it("supports multiple disjoint objects in one image", () => {
     const rows: (0 | 1)[][] = Array.from({ length: 8 }, () => Array(12).fill(0));
     for (let y = 1; y <= 3; y++) for (let x = 1; x <= 3; x++) rows[y]![x] = 1;

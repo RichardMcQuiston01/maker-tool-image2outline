@@ -1,6 +1,6 @@
 {
   "name": "@richardmcquiston01/makertool-image2outline",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Framework-agnostic TypeScript package that generates a vector outline (SVG and/or DXF) of an object from an image.",
   "keywords": [
     "svg",
