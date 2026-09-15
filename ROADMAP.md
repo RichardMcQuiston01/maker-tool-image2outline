@@ -147,8 +147,15 @@ promoted from "Future / stretch" once a concrete need came up post-v1.0.0._
       45°-rotated marker, no-marker and ambiguous-multiple-marker error
       cases, tolerance boundaries) plus an end-to-end test through
       `image2outline()` against a synthesized image.
+- [x] Published to npm and verified: `npm install` of
+      `@richardmcquiston01/makertool-image2outline@1.1.0` in a clean
+      project, exercised from ESM, CJS (dynamic-import interop), and a
+      strict `nodenext` TypeScript consumer — reference-marker
+      calibration, manual scale, and both output formats all worked
+      against the published package, not just the local build.
 
 **Ships:** `v1.1.0` — automatic calibration without manual scale input.
+Released and verified working from the published npm package.
 
 ## Future / stretch (post-`v1.1.0`) ⬜
 

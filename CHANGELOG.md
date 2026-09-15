@@ -31,6 +31,13 @@
   (`GHSA-rgj7-g3m4-5g8c`, `GHSA-2883-xcg3-v3hh`) — both within the existing
   declared semver ranges, no API changes.
 
+### Released
+
+- Published to npm and verified installable: `npm install
+@richardmcquiston01/makertool-image2outline@1.1.0` in a clean project,
+  exercised from ESM, CJS, and TypeScript consumers against the live
+  registry package.
+
 ## 1.0.0
 
 First tagged release — `image2outline()` works end-to-end (image in,
