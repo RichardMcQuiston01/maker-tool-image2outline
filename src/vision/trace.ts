@@ -115,6 +115,21 @@ export interface TracedShape {
 }
 
 /**
+ * Default minimum hole area, as a fraction of the enclosing component's own
+ * pixel area, below which a hole is discarded rather than traced.
+ *
+ * Photographed objects routinely carry printed logos/text/icons (e.g. a
+ * tool's brand mark and model number) whose dark strokes binarize as tiny
+ * enclosed "holes" in an otherwise solid silhouette — noise the outline
+ * shouldn't include. Chosen from a real example: a photographed screwdriver
+ * produced spurious holes up to ~1.7% of the traced silhouette's area from
+ * its printed logo/text, while a genuine hole (an "O"-shaped ring) covers
+ * ~25-56% of its silhouette's area. 3% sits well clear of both, with wide
+ * margin on either side.
+ */
+const DEFAULT_MIN_HOLE_AREA_RATIO = 0.03;
+
+/**
  * Traces one component's outer boundary plus any enclosed holes.
  *
  * Holes are found by flood-filling the component's own local background
@@ -125,8 +140,18 @@ export interface TracedShape {
  * (other components' pixels don't block or extend this component's own
  * membership test, so a shape floating inside the hole doesn't change
  * the hole's boundary — it's simply traced as its own separate shape).
+ *
+ * Holes smaller than `minHoleAreaRatio` of the component's own pixel area
+ * are dropped as noise rather than traced (see
+ * `DEFAULT_MIN_HOLE_AREA_RATIO`); pass `0` to keep every hole regardless of
+ * size.
  */
-export function traceComponent(width: number, height: number, component: PixelRegion): TracedShape {
+export function traceComponent(
+  width: number,
+  height: number,
+  component: PixelRegion,
+  minHoleAreaRatio: number = DEFAULT_MIN_HOLE_AREA_RATIO,
+): TracedShape {
   const inComponent = (x: number, y: number): boolean =>
     x >= 0 && x < width && y >= 0 && y < height && component.cells.has(y * width + x);
 
@@ -159,8 +184,10 @@ export function traceComponent(width: number, height: number, component: PixelRe
     isBackgroundOrOutside,
     4,
   );
+  const minHoleArea = minHoleAreaRatio * component.cells.size;
   const holeRegions = backgroundRegions.filter(
-    (region) => ![...region.cells].some((idx) => isOnPaddedBorder(idx)),
+    (region) =>
+      region.cells.size >= minHoleArea && ![...region.cells].some((idx) => isOnPaddedBorder(idx)),
   );
 
   const holes = holeRegions.map((region) => {

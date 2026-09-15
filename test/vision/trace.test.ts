@@ -145,4 +145,64 @@ describe("traceComponent", () => {
     const traced = traceComponent(mask.width, mask.height, component!);
     expect(traced.holes).toHaveLength(2);
   });
+
+  /**
+   * Builds a solid `size`x`size` square with a single-pixel hole punched at
+   * (1,1) — standing in for the tiny dark specks a printed logo/text/icon
+   * leaves in an otherwise solid photographed object once binarized. Area
+   * ratio shrinks as `size` grows, letting tests target either side of the
+   * default 3% threshold.
+   */
+  function buildSolidSquareWithPinholeAt(size: number): BinaryMask {
+    const rows: (0 | 1)[][] = Array.from({ length: size }, () => Array(size).fill(1));
+    rows[1]![1] = 0;
+    return buildMask(rows);
+  }
+
+  it("drops a hole well below the default area-ratio threshold (printed-logo noise)", () => {
+    // 20x20 solid square minus a 1-pixel hole: ratio = 1 / 399 ≈ 0.25%,
+    // comfortably under the default 3% — modeled on a real photographed
+    // tool whose printed logo/text produced holes up to ~1.7% of the
+    // silhouette's area.
+    const mask = buildSolidSquareWithPinholeAt(20);
+    const [component] = labelComponents(mask);
+    const traced = traceComponent(mask.width, mask.height, component!);
+    expect(traced.holes).toHaveLength(0);
+  });
+
+  it("keeps a hole at or above the default area-ratio threshold", () => {
+    // Reuses the existing "two disjoint holes" mask, where each 1-pixel
+    // hole is ~5.26% of the 19-pixel component — above the 3% default.
+    const mask = buildMask([
+      [1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1],
+    ]);
+    const [component] = labelComponents(mask);
+    const traced = traceComponent(mask.width, mask.height, component!);
+    expect(traced.holes).toHaveLength(1);
+  });
+
+  it("keeps every hole regardless of size when minHoleAreaRatio is 0", () => {
+    const mask = buildSolidSquareWithPinholeAt(20);
+    const [component] = labelComponents(mask);
+    const traced = traceComponent(mask.width, mask.height, component!, 0);
+    expect(traced.holes).toHaveLength(1);
+  });
+
+  it("respects an explicit minHoleAreaRatio override", () => {
+    // The ring's hole is ~56% of its own component's area — set the
+    // threshold above that to confirm even a large legitimate hole can be
+    // dropped when a caller explicitly asks for it.
+    const mask = buildMask([
+      [1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 1],
+      [1, 0, 0, 0, 1],
+      [1, 0, 0, 0, 1],
+      [1, 1, 1, 1, 1],
+    ]);
+    const [component] = labelComponents(mask);
+    const traced = traceComponent(mask.width, mask.height, component!, 0.9);
+    expect(traced.holes).toHaveLength(0);
+  });
 });

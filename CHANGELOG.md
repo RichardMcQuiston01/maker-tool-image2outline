@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 1.1.2
+
+### Fixed
+
+- Traced outlines of real photographed objects no longer pick up spurious
+  tiny holes from printed logos/text/icons on the object itself (e.g. a
+  tool's brand mark and model number binarizing into dozens of dark
+  specks). `traceComponent` now drops any hole smaller than 3% of its
+  enclosing shape's own pixel area (`DEFAULT_MIN_HOLE_AREA_RATIO` in
+  `src/vision/trace.ts`) — chosen from measuring a real example where such
+  noise topped out at ~1.7% of the silhouette's area, while a genuine hole
+  (an "O"-shaped ring) covers ~25-56%, leaving wide margin on both sides.
+  Internal-only for now (`VisionPipelineOptions.minHoleAreaRatio`, not yet
+  part of the public `Image2OutlineOptions`) — pass `0` at that layer to
+  restore the old keep-every-hole behavior if needed.
+
 ## 1.1.1
 
 ### Changed
