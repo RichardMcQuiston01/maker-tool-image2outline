@@ -34,7 +34,7 @@
 ### Released
 
 - Published to npm and verified installable: `npm install
-  @richardmcquiston01/makertool-image2outline@1.1.0` in a clean project,
+@richardmcquiston01/makertool-image2outline@1.1.0` in a clean project,
   exercised from ESM, CJS, and TypeScript consumers against the live
   registry package.
 
