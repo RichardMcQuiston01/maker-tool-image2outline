@@ -100,6 +100,36 @@ async function synthesizeObjectWithSpeckledLogoPng(size: number): Promise<Buffer
     .toBuffer();
 }
 
+/**
+ * Synthesizes a PNG of a solid object on white with a saturated highlight
+ * band along its top edge — modeled on a real photographed tool whose
+ * glossy handle had a bright specular highlight along one side. Its luma
+ * alone reads nearly as light as the white background; see
+ * `preprocess.ts`'s `toThresholdIntensity`.
+ */
+async function synthesizeObjectWithEdgeHighlightPng(size: number): Promise<Buffer> {
+  const channels = 3;
+  const data = Buffer.alloc(size * size * channels, 255);
+  const paint = (x: number, y: number, [r, g, b]: readonly [number, number, number]): void => {
+    const p = (y * size + x) * channels;
+    data[p] = r;
+    data[p + 1] = g;
+    data[p + 2] = b;
+  };
+
+  const objectColor: readonly [number, number, number] = [220, 80, 20];
+  const highlightColor: readonly [number, number, number] = [250, 210, 140];
+  for (let y = 20; y <= 79; y++) {
+    for (let x = 20; x <= 79; x++) {
+      paint(x, y, y <= 25 ? highlightColor : objectColor);
+    }
+  }
+
+  return sharp(data, { raw: { width: size, height: size, channels } })
+    .png()
+    .toBuffer();
+}
+
 /** Synthesizes a PNG containing only a square marker, no other shapes. */
 async function synthesizeMarkerOnlyPng(size: number): Promise<Buffer> {
   const channels = 3;
@@ -225,6 +255,30 @@ describe("image2outline", () => {
     // noise rather than traced as spurious holes.
     const dxf = result.outputs[0]!.content;
     expect(dxf.match(/LWPOLYLINE/g)).toHaveLength(2);
+  });
+
+  it("keeps a saturated edge highlight instead of biting it off as background", async () => {
+    const png = await synthesizeObjectWithEdgeHighlightPng(100);
+    const result = await image2outline(png, { formats: ["dxf"] });
+
+    // Parse every Y coordinate (DXF group code 20) out of the outer
+    // LWPOLYLINE to find the traced silhouette's topmost extent.
+    const dxf = result.outputs[0]!.content;
+    const lines = dxf
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+    const ys: number[] = [];
+    for (let i = 0; i + 1 < lines.length; i++) {
+      if (lines[i] === "20") ys.push(parseFloat(lines[i + 1]!));
+    }
+
+    // The highlight band spans y=20..25 in source pixels; without the fix
+    // the whole band reads as background and the traced top edge stops
+    // around y=26. Default blurRadius smooths the outermost pixel row of
+    // any sharp edge (an expected, unrelated tradeoff), so allow a couple
+    // pixels of slack rather than requiring an exact y=20.
+    expect(Math.min(...ys)).toBeLessThanOrEqual(22);
   });
 
   it("rejects an image where nothing remains after removing the reference marker", async () => {

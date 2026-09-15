@@ -14,23 +14,66 @@ export interface PreprocessOptions {
 }
 
 /**
- * Rec. 709 luma: a single grayscale intensity per pixel, in [0, 255].
- *
- * Alpha is composited against a white matte before computing luminance, so
- * a fully transparent pixel reads as white (background) regardless of its
+ * Composites one pixel's RGB against a white matte using its alpha, so a
+ * fully transparent pixel reads as white (background) regardless of its
  * RGB — otherwise a transparent pixel with RGB (0,0,0) is indistinguishable
  * from an opaque black one, and border-orientation would misclassify a
- * transparent background as the foreground object.
+ * transparent background as the foreground object. Shared by `toGrayscale`
+ * and `toThresholdIntensity` so both apply the same alpha handling.
+ */
+function compositeOnWhite(data: DecodedImage["data"], p: number): [number, number, number] {
+  const alpha = data[p + 3]! / 255;
+  const r = data[p]! * alpha + 255 * (1 - alpha);
+  const g = data[p + 1]! * alpha + 255 * (1 - alpha);
+  const b = data[p + 2]! * alpha + 255 * (1 - alpha);
+  return [r, g, b];
+}
+
+/** Rec. 709 luma from already-composited RGB, in [0, 255]. */
+function luma(r: number, g: number, b: number): number {
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * Rec. 709 luma: a single grayscale intensity per pixel, in [0, 255].
+ *
+ * Alpha is composited against a white matte before computing luminance —
+ * see `compositeOnWhite`.
  */
 export function toGrayscale(image: DecodedImage): Float64Array {
   const { width, height, data } = image;
   const out = new Float64Array(width * height);
   for (let i = 0, p = 0; i < out.length; i++, p += 4) {
-    const alpha = data[p + 3]! / 255;
-    const r = data[p]! * alpha + 255 * (1 - alpha);
-    const g = data[p + 1]! * alpha + 255 * (1 - alpha);
-    const b = data[p + 2]! * alpha + 255 * (1 - alpha);
-    out[i] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    out[i] = luma(...compositeOnWhite(data, p));
+  }
+  return out;
+}
+
+/**
+ * Saturation-aware intensity used for thresholding: `luma - chroma`, where
+ * chroma (`max(R,G,B) - min(R,G,B)`) measures how far a pixel is from
+ * grayscale.
+ *
+ * A photographed object's glossy/specular highlight can wash out to a luma
+ * close to a white background's even though it's still a visibly saturated
+ * color (e.g. a bright highlight on red/yellow plastic) — plain luma-based
+ * Otsu thresholding then misclassifies that highlight as background,
+ * biting a notch out of the traced silhouette right where the highlight
+ * sits. Subtracting chroma pulls any saturated pixel's effective intensity
+ * back down toward its true darkness regardless of how bright it looks,
+ * fixing that without needing to know the actual background color.
+ *
+ * For grayscale content (R=G=B everywhere, chroma always 0) this is
+ * identical to `toGrayscale` — zero behavior change for non-photographic,
+ * single-channel-equivalent input.
+ */
+export function toThresholdIntensity(image: DecodedImage): Float64Array {
+  const { width, height, data } = image;
+  const out = new Float64Array(width * height);
+  for (let i = 0, p = 0; i < out.length; i++, p += 4) {
+    const [r, g, b] = compositeOnWhite(data, p);
+    const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+    out[i] = Math.max(0, luma(r, g, b) - chroma);
   }
   return out;
 }
@@ -116,6 +159,14 @@ export function otsuThreshold(gray: Float64Array): number {
  * flips the mask if needed so `1` consistently means "the traced object"
  * rather than "the background" — determined by sampling the image border:
  * whichever class dominates the border is assumed to be the background.
+ *
+ * Compares `Math.round(gray[i])`, not the raw value, against `threshold`:
+ * `otsuThreshold` finds its optimal split over the same rounded integer
+ * buckets (its histogram groups every value by `Math.round`), so a pixel
+ * whose raw intensity is a hair above an integer threshold but rounds down
+ * to it must still land in the class that rounded value was optimized for
+ * — otherwise a whole cluster of same-colored pixels can end up split
+ * across the threshold by sub-integer rounding noise alone.
  */
 export function binarize(
   gray: Float64Array,
@@ -125,7 +176,7 @@ export function binarize(
 ): BinaryMask {
   const data = new Uint8Array(gray.length);
   for (let i = 0; i < gray.length; i++) {
-    data[i] = gray[i]! <= threshold ? 1 : 0;
+    data[i] = Math.round(gray[i]!) <= threshold ? 1 : 0;
   }
   return orientForeground({ width, height, data });
 }
@@ -159,7 +210,7 @@ function orientForeground(mask: BinaryMask): BinaryMask {
 /** Full preprocessing pipeline: `DecodedImage` -> foreground `BinaryMask`. */
 export function preprocess(image: DecodedImage, options: PreprocessOptions = {}): BinaryMask {
   const { blurRadius = 1 } = options;
-  const gray = boxBlur(toGrayscale(image), image.width, image.height, blurRadius);
+  const gray = boxBlur(toThresholdIntensity(image), image.width, image.height, blurRadius);
   const threshold = otsuThreshold(gray);
   return binarize(gray, image.width, image.height, threshold);
 }

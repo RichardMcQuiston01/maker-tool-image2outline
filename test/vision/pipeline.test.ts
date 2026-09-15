@@ -21,6 +21,26 @@ function buildImage(rows: readonly (readonly (0 | 1)[])[]): DecodedImage {
   return { width, height, data };
 }
 
+/** Builds a DecodedImage by mapping each pixel's (x, y) to an [r, g, b] triple. */
+function buildRgbImage(
+  width: number,
+  height: number,
+  colorAt: (x: number, y: number) => readonly [number, number, number],
+): DecodedImage {
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const [r, g, b] = colorAt(x, y);
+      const p = (y * width + x) * 4;
+      data[p] = r;
+      data[p + 1] = g;
+      data[p + 2] = b;
+      data[p + 3] = 255;
+    }
+  }
+  return { width, height, data };
+}
+
 describe("traceImage", () => {
   it("produces one shape with no holes for a filled square (Stage 1 exit criteria)", () => {
     const rows: (0 | 1)[][] = Array.from({ length: 10 }, () => Array(10).fill(0));
@@ -86,6 +106,33 @@ describe("traceImage", () => {
 
     expect(doc.shapes).toHaveLength(1);
     expect(doc.shapes[0]!.holes).toHaveLength(1);
+  });
+
+  it("traces the full height of an object with a saturated highlight along its top edge", () => {
+    // Reproduces a real reported bug: a photographed object (e.g. a glossy
+    // red/yellow tool handle) with a bright specular highlight along its
+    // top edge came back with that edge missing from the traced outline —
+    // plain luma-based thresholding read the bright-but-still-colored
+    // highlight as background. See `preprocess.ts`'s `toThresholdIntensity`.
+    const size = 20;
+    const objectColor: readonly [number, number, number] = [220, 80, 20];
+    const highlightColor: readonly [number, number, number] = [250, 210, 140];
+    const image = buildRgbImage(size, size, (x, y) => {
+      const inObject = x >= 5 && x <= 14 && y >= 5 && y <= 14;
+      if (!inObject) return [255, 255, 255];
+      return y === 5 ? highlightColor : objectColor;
+    });
+
+    const doc = traceImage(image, { blurRadius: 0 });
+
+    expect(doc.shapes).toHaveLength(1);
+    const ys = [
+      doc.shapes[0]!.outer.path.start.y,
+      ...doc.shapes[0]!.outer.path.segments.map((s) => s.to.y),
+    ];
+    // The traced outline must reach the object's true top edge (y=5, where
+    // the highlight sits), not stop short at the object's main body (y=6).
+    expect(Math.min(...ys)).toBe(5);
   });
 
   it("supports multiple disjoint objects in one image", () => {
