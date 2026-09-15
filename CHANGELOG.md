@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 1.1.1
+
+### Changed
+
+- Docs only: `ROADMAP.md`/`CHANGELOG.md` record the post-publish
+  fresh-install verification of `v1.1.0` (`npm install` in a clean
+  project, exercised from ESM, CJS, and TypeScript consumers against the
+  live registry package). No source, test, or behavior changes.
+
 ## 1.1.0
 
 ### Added
