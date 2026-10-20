@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.1.4
+
+### Added
+
+- `funding` field in `package.json` pointing at the project's Stripe
+  donation link, so `npm fund` lists it and the npm registry page shows a
+  "Fund this package" button. Metadata only — no code or API changes.
+
 ## 1.1.3
 
 ### Fixed
