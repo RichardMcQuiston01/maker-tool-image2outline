@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.5
+
+- No code changes. Donate links and the `funding` entry now point to PayPal, and the README donate QR image is 180 px wide.
+
 ## 1.1.4
 
 ### Added
