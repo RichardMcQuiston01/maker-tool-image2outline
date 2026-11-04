@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.5
+
+- No code changes. Donations now point at Ko-fi instead of PayPal: the README badge, the `package.json` `funding` link and a new `.github/FUNDING.yml`. The PayPal QR image is removed.
+
 ## 1.1.4
 
 ### Added
